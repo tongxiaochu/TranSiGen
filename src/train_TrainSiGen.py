@@ -6,15 +6,6 @@ import argparse
 import warnings
 warnings.filterwarnings('ignore')
 
-# #显示所有列
-# pd.set_option('display.max_columns', None)
-# #显示所有行
-# pd.set_option('display.max_rows', None)
-# #设置value的显示长度
-# pd.set_option('max_colwidth', 100)
-# #设置1000列时才换行
-# pd.set_option('display.width', 1000)
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Arguments for training TranSiGen")
@@ -52,21 +43,14 @@ def train_TranSiGen(args):
     random_seed = args.seed
     setup_seed(random_seed)
     dev = torch.device(args.dev if torch.cuda.is_available() else 'cpu')
-    # print('Using device:', dev, flush=True)
-
-    # data = load_from_HDF('../data/LINCS2020/processed_data_id.h5')
-    # data = load_from_HDF(args.data_path)
-    # cell_count = len(set(data['cid']))
+    
     cell_count = 7
     print('cell count:', cell_count)
     # data = subsetDict(data, np.arange(10000))
 
-    # with open('../data/LINCS2020/idx2smi.pickle', 'rb') as f:
     with open(args.molecule_path, 'rb') as f:
         idx2smi = pickle.load(f)
 
-    # print('all data:', len(data['canonical_smiles']), len(set(data['canonical_smiles'])))
-    print('args.train_flag:', args.train_flag)
     train_flag = args.train_flag
     eval_metric = args.eval_metric
     predict_profile = args.predict_profile
@@ -204,35 +188,19 @@ def train_TranSiGen(args):
 
     if eval_metric:
         setup_seed(random_seed)
-        # train_dict, train_metrics_dict, train_metrics_dict_ls = model.test_model(loader=train_loader,
-        #                                                                     metrics_func=['r2', 'pearson', 'rmse',
-        #                                                                                   'precision10', 'precision20',
-        #                                                                                   'precision50', 'precision100'],
-        #                                                                     )
-        #
-        # valid_dict, valid_metrics_dict, valid_metrics_dict_ls = model.test_model(loader=valid_loader,
-        #                                                                     metrics_func=['r2', 'pearson', 'rmse',
-        #                                                                                   'precision10', 'precision20',
-        #                                                                                   'precision50', 'precision100'],
-        #                                                                     )
-        test_dict, test_metrics_dict, test_metrics_dict_ls = model.test_model(loader=test_loader,
-                                                                         metrics_func=['r2', 'pearson', 'rmse',
-                                                                                       'precision10', 'precision20',
-                                                                                       'precision50', 'precision100'],
-                                                                         )
+
+        test_dict, test_metrics_dict, test_metrics_dict_ls = model.test_model(loader=test_loader, metrics_func=['pearson', 'rmse', 'precision100'])
 
 
         df_metrics = pd.DataFrame(columns=['data'] + list(test_metrics_dict.keys()))
-        # for name, dict_value in zip(['train', 'valid', 'test',], [train_metrics_dict, valid_metrics_dict, test_metrics_dict]):
         for name, dict_value in zip(['test'],
                                     [test_metrics_dict]):
             df_metrics.loc[df_metrics.shape[0]] = [name] + list(dict_value.values())
 
         print('restruction evaluation:', df_metrics)
-        # round(df_metrics, 3).to_csv(save_dir + '/restruction_result_epoch{}.csv'.format(best_epoch), index=False)
+        round(df_metrics, 3).to_csv(save_dir + '/restruction_result_epoch{}.csv'.format(best_epoch), index=False)
 
 
-        # for name, rec_dict_value in zip(['train', 'valid', 'test'], [train_metrics_dict_ls, valid_metrics_dict_ls, test_metrics_dict_ls]):
         for name, rec_dict_value in zip(['test'],
                                         [test_metrics_dict_ls]):
             df_rec = pd.DataFrame.from_dict(rec_dict_value)
@@ -240,25 +208,24 @@ def train_TranSiGen(args):
             for smi_id in df_rec['cp_id']:
                 smi_ls.append(idx2smi[smi_id])
             df_rec['canonical_smiles'] = smi_ls
-            # df_rec.to_csv(save_dir + '/{}_restruction_result_all_samples.csv'.format(name), index=False)
+            df_rec.to_csv(save_dir + '/{}_restruction_result_all_samples.csv'.format(name), index=False)
 
     print('===============Predict profile==============')
     if predict_profile:
-        # # for name, loader in zip(['train', 'valid', 'test', 'test_external'], [train_loader, valid_loader, test_loader, test_external_loader]):
-        # for name, loader in zip(['test'], [test_loader]):
-        #     x1_array, x2_array, x1_rec_array, x2_rec_array, x2_pred_array, _, mol_id_array, cid_array, sig_array = model.predict_profile(loader=loader)
-        #     ddict_data = dict()
-        #     ddict_data['x1'] = x1_array
-        #     ddict_data['x2'] = x2_array
-        #     ddict_data['x2_rec'] = x2_rec_array
-        #     ddict_data['x2_pred'] = x2_pred_array
-        #     ddict_data['cp_id'] = mol_id_array
-        #     ddict_data['cid'] = cid_array
-        #     ddict_data['sig'] = sig_array
-        #
-        #     for k in ddict_data.keys():
-        #         print(type(ddict_data[k][0]), ddict_data[k].shape)
-        #     save_to_HDF(save_dir + '/{}_prediction_profile.h5'.format(name), ddict_data)
+        for name, loader in zip(['test'], [test_loader]):
+            x1_array, x2_array, x1_rec_array, x2_rec_array, x2_pred_array, _, mol_id_array, cid_array, sig_array = model.predict_profile(loader=loader)
+            ddict_data = dict()
+            ddict_data['x1'] = x1_array
+            ddict_data['x2'] = x2_array
+            ddict_data['x2_rec'] = x2_rec_array
+            ddict_data['x2_pred'] = x2_pred_array
+            ddict_data['cp_id'] = mol_id_array
+            ddict_data['cid'] = cid_array
+            ddict_data['sig'] = sig_array
+        
+            for k in ddict_data.keys():
+                print(type(ddict_data[k][0]), ddict_data[k].shape)
+            save_to_HDF(save_dir + '/{}_prediction_profile.h5'.format(name), ddict_data)
 
         if split_type == 'smiles_split':
             pairte = load_from_HDF('../data/LINCS2020/same_{}/test_external.h5'.format(split_type))

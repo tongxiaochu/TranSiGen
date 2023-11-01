@@ -195,7 +195,7 @@ class TranSiGen(torch.nn.Module):
         return feat_embed
 
     def train_model(self, learning_rate, weight_decay, n_epochs, train_loader, test_loader, save_model=True, metrics_func=None):
-        """ Train VAE """
+        """ Train TranSiGen """
         epoch_hist = defaultdict(list)
         optimizer = optim.Adam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
         loss_item = ['loss', 'mse_x1', 'mse_x2', 'mse_pert', 'kld_x1', 'kld_x2', 'kld_pert']
@@ -386,30 +386,22 @@ class TranSiGen(torch.nn.Module):
 
     def predict_profile_for_x1(self, loader):
 
-        # test_size = 0
-
         self.eval()
         with torch.no_grad():
-            # for x1_data, x2_data, mol_features, mol_id, cid, sig in loader:
             for x1_data, mol_features, mol_id, cid in loader:
                 cid = np.array(list(cid))
                 x1_data = x1_data.to(self.dev)
                 mol_features = mol_features.to(self.dev)
-                # test_size += x1_data.shape[0]
                 x1_rec, mu1, logvar1, x2_pred, mu_pred, logvar_pred, z2_pred = self.forward(x1_data, mol_features)
-                # x1_rec, mu1, logvar1, x2_pert, pert_mu, pert_logvar, z2_pred = self.forward(x1_data, features)
                 try:
-                    # x1_array = torch.cat([x1_array, x1_data], dim=0)
                     x2_pred_array = torch.cat([x2_pred_array, x2_pred], dim=0)
                     mol_id_array = torch.cat([mol_id_array, mol_id], dim=0)
                     cid_array = np.concatenate((cid_array, cid), axis=0)
                 except:
-                    # x1_array = x1_data.clone()
                     x2_pred_array = x2_pred.clone()
                     mol_id_array = mol_id.clone()
                     cid_array = cid.copy()
 
-        # x1_array = x1_array.cpu().numpy().astype(float)
         x2_pred_array = x2_pred_array.cpu().numpy().astype(float)
         mol_id_array = mol_id_array.cpu().numpy().astype(float)
 
@@ -433,10 +425,7 @@ class TranSiGen(torch.nn.Module):
         metrics_dict = defaultdict(float)
         metrics_dict_ls = defaultdict(list)
         for m in metrics_func:
-            if m in ['GSEA']:
-                metrics_dict['x1_rec_' + m] = 0
-                metrics_dict_ls['x1_rec_' + m] = [0] * x1_np.shape[0]
-            elif m in ['precision10', 'precision20', 'precision50', 'precision100', 'precision200']:
+            if m in ['precision10', 'precision20', 'precision50', 'precision100', 'precision200']:
                 for i in range(x1_np.shape[0]):
                     precision_neg, precision_pos = get_metric_func(m)(x1_np[i, :], x1_rec_np[i, :])
                     metrics_dict['x1_rec_neg_' + m] += precision_neg
@@ -449,10 +438,7 @@ class TranSiGen(torch.nn.Module):
                     metrics_dict_ls['x1_rec_' + m] += [get_metric_func(m)(x1_np[i, :], x1_rec_np[i, :])]
 
         for m in metrics_func:
-            if m in ['GSEA']:
-                metrics_dict['x2_rec_' + m] = 0
-                metrics_dict_ls['x2_rec_' + m] = [0] * x1_np.shape[0]
-            elif m in ['precision10', 'precision20', 'precision50', 'precision100', 'precision200']:
+            if m in ['precision10', 'precision20', 'precision50', 'precision100', 'precision200']:
                 for i in range(x1_np.shape[0]):
                     precision_neg, precision_pos = get_metric_func(m)(x2_np[i, :], x2_rec_np[i, :])
                     metrics_dict['x2_rec_neg_' + m] += precision_neg
@@ -465,10 +451,7 @@ class TranSiGen(torch.nn.Module):
                     metrics_dict_ls['x2_rec_' + m] += [get_metric_func(m)(x2_np[i, :], x2_rec_np[i, :])]
 
         for m in metrics_func:
-            if m in ['GSEA']:
-                metrics_dict['x2_pred_' + m] = 0
-                metrics_dict_ls['x2_pred_' + m] = [0] * x1_np.shape[0]
-            elif m in ['precision10', 'precision20', 'precision50', 'precision100', 'precision200']:
+            if m in ['precision10', 'precision20', 'precision50', 'precision100', 'precision200']:
                 for i in range(x1_np.shape[0]):
                     precision_neg, precision_pos = get_metric_func(m)(x2_np[i, :], x2_pred_np[i, :])
                     metrics_dict['x2_pred_neg_' + m] += precision_neg

@@ -44,15 +44,12 @@ def train_TranSiGen(args):
     random_seed = args.seed
     setup_seed(random_seed)
     dev = torch.device(args.dev if torch.cuda.is_available() else 'cpu')
-    # print('Using device:', dev, flush=True)
 
-    # data = load_from_HDF('../data/LINCS2020/processed_data_id.h5')
     data = load_from_HDF(args.data_path)
     cell_count = len(set(data['cid']))
     print('cell count:', cell_count)
     # data = subsetDict(data, np.arange(10000))
 
-    # with open('../data/LINCS2020/idx2smi.pickle', 'rb') as f:
     with open(args.molecule_path, 'rb') as f:
         idx2smi = pickle.load(f)
 
@@ -199,26 +196,8 @@ def train_TranSiGen(args):
 
     if eval_metric:
         setup_seed(random_seed)
-        # train_dict, train_metrics_dict, train_metrics_dict_ls = model.test_model(loader=train_loader,
-        #                                                                     metrics_func=['r2', 'pearson', 'rmse',
-        #                                                                                   'precision10', 'precision20',
-        #                                                                                   'precision50', 'precision100'],
-        #                                                                     )
-        #
-        # valid_dict, valid_metrics_dict, valid_metrics_dict_ls = model.test_model(loader=valid_loader,
-        #                                                                     metrics_func=['r2', 'pearson', 'rmse',
-        #                                                                                   'precision10', 'precision20',
-        #                                                                                   'precision50', 'precision100'],
-        #                                                                     )
         _, _, test_metrics_dict_ls = model.test_model(loader=test_loader, metrics_func=['pearson', 'rmse', 'precision100'])
 
-
-        # df_metrics = pd.DataFrame(columns=['data'] + list(test_metrics_dict.keys()))
-        # for name, dict_value in zip(['test'], [test_metrics_dict]):
-        #     df_metrics.loc[df_metrics.shape[0]] = [name] + list(dict_value.values())
-        #
-        # print('restruction evaluation:', df_metrics)
-        # round(df_metrics, 3).to_csv(save_dir + '/restruction_result_epoch{}.csv'.format(best_epoch), index=False)
 
         for name, rec_dict_value in zip(['test'], [test_metrics_dict_ls]):
             df_rec = pd.DataFrame.from_dict(rec_dict_value)
@@ -226,7 +205,7 @@ def train_TranSiGen(args):
             for smi_id in df_rec['cp_id']:
                 smi_ls.append(idx2smi[smi_id])
             df_rec['canonical_smiles'] = smi_ls
-            # df_rec.to_csv(save_dir + '/{}_restruction_result_all_samples.csv'.format(name), index=False)
+            df_rec.to_csv(save_dir + '/{}_restruction_result_all_samples.csv'.format(name), index=False)
 
     print('===============Predict profile==============')
     if predict_profile:
@@ -243,7 +222,7 @@ def train_TranSiGen(args):
 
             for k in ddict_data.keys():
                 print(type(ddict_data[k][0]), ddict_data[k].shape)
-            # save_to_HDF(save_dir + '/{}_prediction_profile.h5'.format(name), ddict_data)
+            save_to_HDF(save_dir + '/{}_prediction_profile.h5'.format(name), ddict_data)
 
 
 if __name__ == "__main__":

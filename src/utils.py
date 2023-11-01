@@ -247,20 +247,6 @@ def spearman(targets, preds):
         return float('nan')
 
 
-# def GSEA(label_test, label_predict):
-#     df_gene = pd.read_csv('/home/tongxiaochu/work/drug_perturbation/project/pytorch_03/DrVAE-master/workspace/datafiles/LINCS_2020/landmark_gene_info.csv')
-#
-#     expr_df = pd.DataFrame(label_test.reshape(1, -1), columns=df_gene['gene_id'], index=[str(0)])
-#     # print(np.where(label_predict > 0)[0])
-#     pos_predict_set = np.where(label_predict > 0)[0]
-#     neg_predict_set = np.where(label_predict < 0)[0]
-#
-#     ups = df_gene.iloc[pos_predict_set, 0].tolist()
-#     dowms = df_gene.iloc[neg_predict_set, 0].tolist()
-#     cs_up_df = computecs(ups, dowms, expr_df.T)
-#
-#     return cs_up_df.iloc[0, 0]
-
 # This file consists of useful functions that are related to cmap
 def computecs(qup, qdown, expression):
     '''
