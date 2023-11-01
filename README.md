@@ -18,7 +18,6 @@ python train_TranSiGen_full_data.py --data_path ../dataLINCS2020/processed_data_
                                     --weight_decay 1e-5
                                     --train_flag True
                                     --eval_metric True
-                                    --predict_profile True
 
 ```
 
