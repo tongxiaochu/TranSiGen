@@ -30,3 +30,14 @@ python prediction.py --model_path ../results/trained_models_164_cell_smiles_spli
                      --seed 100
 
 ```
+
+### Setup and dependencies
+requirements.txt contains environment of this project.
+
+### Requirements
+python = 3.6.13 
+pytorch = 1.5.1
+cmappy = 4.0.1
+scikit-learn = 0.24.2
+numpy = 1.19.5
+rdkit = 2020.09.1
