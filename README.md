@@ -1,7 +1,7 @@
 # TranSiGen
 TranSiGen: Deep representation learning of chemical-induced transcriptional profile
 
-#### Train model
+### Train model
 ```
 python train_TranSiGen_full_data.py --data_path ../dataLINCS2020/processed_data_id.h5
                                     --molecule_path ../data/LINCS2020/idx2smi.pickle
@@ -21,7 +21,7 @@ python train_TranSiGen_full_data.py --data_path ../dataLINCS2020/processed_data_
 
 ```
 
-#### Infer profile
+### Infer profile
 ```
 python prediction.py --model_path ../results/trained_models_164_cell_smiles_split/364039/feature_KPGT_init_pretrain_shRNA/best_model.pt
                      --data_path ../data/PRISM/screening_compound.csv
@@ -30,3 +30,15 @@ python prediction.py --model_path ../results/trained_models_164_cell_smiles_spli
                      --seed 100
 
 ```
+
+
+### Setup and dependencies
+requirements.txt contains environment of this project.
+
+### Requirements
+python = 3.6.13
+pytorch = 1.5.1
+cmappy = 4.0.1
+scikit-learn = 0.24.2
+numpy = 1.19.5
+rdkit = 2020.09.1
